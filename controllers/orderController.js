@@ -1,172 +1,3 @@
-// import dotenv from 'dotenv';
-// dotenv.config();
-
-// import asyncHandler from 'express-async-handler';
-// import Order from '../models/Order.js';
-// import CartItem from '../models/CartItem.js';
-// import Razorpay from 'razorpay';
-// import crypto from 'crypto';
-
-// // ====================== RAZORPAY INITIALIZATION ======================
-// const razorpay = new Razorpay({
-//   key_id: process.env.RAZORPAY_KEY_ID,
-//   key_secret: process.env.RAZORPAY_KEY_SECRET,
-// });
-
-// // ====================== RAZORPAY LOGIC ======================
-
-// // @desc    Create Razorpay Order (Pre-payment step)
-// // @route   POST /api/orders/razorpay/create-order
-// // @access  Private
-// const createRazorpayOrder = asyncHandler(async (req, res) => {
-//   const { totalPrice } = req.body;
-
-//   const amountInPaisa = Math.round(totalPrice * 100); // INR → paisa
-//   const options = {
-//     amount: amountInPaisa,
-//     currency: 'INR',
-//     receipt: crypto.randomBytes(10).toString('hex'),
-//   };
-
-//   razorpay.orders.create(options, (err, order) => {
-//     if (err) {
-//       console.error(err);
-//       res.status(500);
-//       throw new Error('Razorpay failed to create order.');
-//     }
-//     res.json({ id: order.id, currency: order.currency, amount: order.amount });
-//   });
-// });
-
-// // @desc    Verify Razorpay Payment Signature
-// // @route   POST /api/orders/razorpay/verify
-// // @access  Private
-// const verifyRazorpayPayment = asyncHandler(async (req, res) => {
-//   const { order_id, payment_id, signature } = req.body;
-
-//   const body = order_id + "|" + payment_id;
-
-//   const expectedSignature = crypto
-//     .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-//     .update(body.toString())
-//     .digest('hex');
-
-//   if (expectedSignature === signature) {
-//     res.json({ success: true, message: 'Payment verified successfully.' });
-//   } else {
-//     res.status(400);
-//     throw new Error('Payment signature verification failed.');
-//   }
-// });
-
-// // ====================== ORDER CREATION ======================
-
-// // @desc    Create new order in DB (after payment verification)
-// // @route   POST /api/orders
-// // @access  Private
-// const addOrderItems = asyncHandler(async (req, res) => {
-//   const { 
-//     orderItems, 
-//     shippingAddress, 
-//     paymentMethod, 
-//     paymentResult, 
-//     taxPrice, 
-//     shippingPrice, 
-//     totalPrice 
-//   } = req.body;
-
-//   if (!orderItems || orderItems.length === 0) {
-//     res.status(400);
-//     throw new Error('No order items');
-//   }
-
-//   const order = new Order({
-//     user: req.user._id,
-//     orderItems,
-//     shippingAddress,
-//     paymentMethod,
-//     paymentResult: paymentResult || { id: 'COD_ORDER', status: 'Pending' },
-//     taxPrice,
-//     shippingPrice,
-//     totalPrice,
-//     isPaid: paymentMethod === 'Razorpay' ? true : false,
-//     paidAt: paymentMethod === 'Razorpay' ? Date.now() : null,
-//   });
-
-//   const createdOrder = await order.save();
-
-//   // Clear user's cart after successful order
-//   await CartItem.deleteMany({ user: req.user._id });
-
-//   res.status(201).json(createdOrder);
-// });
-
-// // ====================== USER ROUTES ======================
-
-// // @desc    Get logged-in user's all orders
-// // @route   GET /api/orders/myorders
-// // @access  Private
-// const getMyOrders = asyncHandler(async (req, res) => {
-//   const orders = await Order.find({ user: req.user._id });
-//   res.json(orders);
-// });
-
-// // @desc    Get single order by ID
-// // @route   GET /api/orders/:id
-// // @access  Private
-// const getOrderById = asyncHandler(async (req, res) => {
-//   const order = await Order.findById(req.params.id).populate('user', 'name email');
-
-//   if (order) {
-//     if (order.user._id.toString() === req.user._id.toString() || req.user.isAdmin) {
-//       res.json(order);
-//     } else {
-//       res.status(401);
-//       throw new Error('Not authorized to view this order');
-//     }
-//   } else {
-//     res.status(404);
-//     throw new Error('Order not found');
-//   }
-// });
-
-// // ====================== ADMIN ROUTES ======================
-
-// // @desc    Get all orders (Admin)
-// // @route   GET /api/orders
-// // @access  Private/Admin
-// const getAllOrders = asyncHandler(async (req, res) => {
-//   const orders = await Order.find({}).populate('user', 'id name email');
-//   res.json(orders);
-// });
-
-// // @desc    Update order to delivered
-// // @route   PUT /api/orders/:id/deliver
-// // @access  Private/Admin
-// const updateOrderToDelivered = asyncHandler(async (req, res) => {
-//   const order = await Order.findById(req.params.id);
-
-//   if (order) {
-//     order.isDelivered = true;
-//     order.deliveredAt = Date.now();
-//     const updatedOrder = await order.save();
-//     res.json(updatedOrder);
-//   } else {
-//     res.status(404);
-//     throw new Error('Order not found');
-//   }
-// });
-
-// // ====================== EXPORTS ======================
-// export { 
-//   createRazorpayOrder, 
-//   verifyRazorpayPayment, 
-//   addOrderItems, 
-//   getMyOrders,
-//   getOrderById,
-//   getAllOrders,
-//   updateOrderToDelivered 
-// };
 
 // backend/controllers/orderController.js
 import dotenv from 'dotenv';
@@ -221,6 +52,8 @@ const verifyRazorpayPayment = asyncHandler(async (req, res) => {
   }
 });
 
+
+
 // ================== ADD ORDER AFTER PAYMENT ==================
 const addOrderItems = asyncHandler(async (req, res) => {
   const {
@@ -228,10 +61,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
     shippingAddress,
     paymentMethod,
     paymentResult,
-    taxPrice,
-    shippingPrice,
-    totalPrice,
-    itemsPrice,
+    shippingPrice = 0,
   } = req.body;
 
   if (!orderItems || orderItems.length === 0) {
@@ -239,18 +69,27 @@ const addOrderItems = asyncHandler(async (req, res) => {
     throw new Error('No order items');
   }
 
+  // 🧮 Step 1: Calculate subtotal (sum of inclusive prices)
+  const shownSubtotal = orderItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+  // 🧮 Step 2: Reverse-calculate base price & 5% tax
+  const itemsPrice = +(shownSubtotal / 1.05).toFixed(2); // base (excluding tax)
+  const taxPrice = +(shownSubtotal - itemsPrice).toFixed(2); // GST (5%)
+  const totalPrice = +(itemsPrice + taxPrice + shippingPrice).toFixed(2);
+
+  // 🧮 Step 3: Create the order document
   const order = new Order({
     user: req.user._id,
     orderItems,
     shippingAddress,
     paymentMethod,
     paymentResult: paymentResult || { id: 'COD_ORDER', status: 'Pending' },
-    itemsPrice: itemsPrice || 0,
-    taxPrice: taxPrice || 0,
-    shippingPrice: shippingPrice || 0,
-    totalPrice: totalPrice || 0,
-    isPaid: paymentMethod === 'Razorpay' ? true : false,
-    paidAt: paymentMethod === 'Razorpay' ? Date.now() : null,
+    itemsPrice,
+    taxPrice,
+    shippingPrice,
+    totalPrice,
+    isPaid: paymentMethod?.toLowerCase() === 'razorpay',
+    paidAt: paymentMethod?.toLowerCase() === 'razorpay' ? Date.now() : null,
 
     // ✅ Default Order Status
     status: 'Ordered',
@@ -261,19 +100,20 @@ const addOrderItems = asyncHandler(async (req, res) => {
 
   const createdOrder = await order.save();
 
-  // remove purchased items from cart (only those products)
+  // 🧹 Step 4: Remove purchased items from the user’s cart
   if (orderItems && orderItems.length > 0) {
-    const purchasedProductIds = orderItems.map(it => it.product.toString());
-    // delete each cart item that matches user & product
+    const purchasedProductIds = orderItems.map((it) => it.product.toString());
     await CartItem.deleteMany({
       user: req.user._id,
       product: { $in: purchasedProductIds },
     });
   }
 
-
+  // ✅ Step 5: Return clean response
   res.status(201).json(createdOrder);
 });
+
+
 
 // ================== GET MY ORDERS (USER) ==================
 const getMyOrders = asyncHandler(async (req, res) => {
