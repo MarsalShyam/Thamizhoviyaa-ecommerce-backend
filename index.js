@@ -15,6 +15,7 @@ import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import orderRoutes from './routes/orderRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js';
+import pdfRoutes from './routes/pdfRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -56,6 +57,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/users', userRoutes);
 
 app.use('/api/orders', orderRoutes);
+app.use("/api/pdf", pdfRoutes);
 
 
 
