@@ -44,6 +44,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '/images/default_user.png',
     },
+        // 🔐 For "forgot password" feature
+    resetPasswordToken: { type: String },
+    resetPasswordExpire: { type: Date },
+
   },
   {
     timestamps: true,
