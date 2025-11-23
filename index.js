@@ -19,6 +19,7 @@ import pdfRoutes from './routes/pdfRoutes.js';
 
 // Load environment variables
 dotenv.config();
+console.log("FIREBASE_PROJECT_ID:", process.env.FIREBASE_PROJECT_ID);
 
 // --- Initialize App ---
 const app = express();

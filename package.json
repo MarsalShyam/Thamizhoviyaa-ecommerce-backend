@@ -21,6 +21,7 @@
     "experss": "^0.0.1-security",
     "express": "^5.1.0",
     "express-async-handler": "^1.2.0",
+    "firebase-admin": "^13.6.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.2",
     "multer": "^2.0.2",
