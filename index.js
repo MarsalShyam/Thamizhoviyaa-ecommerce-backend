@@ -67,10 +67,12 @@ app.get('/api/test', (req, res) => {
 });
 
 // --- Global Error Handling ---
-app.use((err, req, res, next) => {
-  console.error('💥 Error:', err.stack);
-  res.status(500).json({ error: 'Internal Server Error' });
-});
+// app.use((err, req, res, next) => {
+//   console.error('💥 Error:', err.stack);
+//   res.status(500).json({ error: 'Internal Server Error' });
+// });
+app.use(notFound);
+app.use(errorHandler);
 
 // --- Start Server ---
 const PORT = process.env.PORT || 5000;

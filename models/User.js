@@ -1,7 +1,78 @@
+// // backend/models/User.js
+// import mongoose from 'mongoose';
+// import bcrypt from 'bcryptjs';
+
+
+// const addressSchema = new mongoose.Schema({
+//   name: { type: String, required: true },
+//   phone: { type: String, required: true },
+//   address: { type: String, required: true },
+//   city: { type: String, required: true },
+//   pincode: { type: String, required: true },
+//   // _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+//   isDefault: { type: Boolean, default: false },
+// });
+
+
+// const userSchema = new mongoose.Schema(
+//   {
+//     name: { type: String, required: true },
+
+//     // Email is optional (some users might register with phone only)
+//     email: { type: String, unique: true, sparse: true },
+
+//     phone: { type: String, required: true, unique: true },
+
+//     password: { type: String, required: true },
+
+
+//     isAdmin: { type: Boolean, required: true, default: false },
+
+
+//     addresses: [addressSchema],
+
+
+//     wishlist: [
+//       {
+//         type: mongoose.Schema.Types.ObjectId,
+//         ref: 'Product',
+//       },
+//     ],
+
+
+//     profileImage: {
+//       type: String,
+//       default: '/images/default_user.png',
+//     },
+//   },
+//   {
+//     timestamps: true,
+//   }
+// );
+
+
+// userSchema.pre('save', async function (next) {
+//   if (!this.isModified('password')) {
+//     return next();
+//   }
+//   const salt = await bcrypt.genSalt(10);
+//   this.password = await bcrypt.hash(this.password, salt);
+//   next();
+// });
+
+
+// userSchema.methods.matchPassword = async function (enteredPassword) {
+//   return await bcrypt.compare(enteredPassword, this.password);
+// };
+
+
+// const User = mongoose.model('User', userSchema);
+// export default User;
+
+
 // backend/models/User.js
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-
 
 const addressSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -9,28 +80,24 @@ const addressSchema = new mongoose.Schema({
   address: { type: String, required: true },
   city: { type: String, required: true },
   pincode: { type: String, required: true },
-  // _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
   isDefault: { type: Boolean, default: false },
 });
-
 
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
 
-    // Email is optional (some users might register with phone only)
+    // Email is now required for verification
     email: { type: String, unique: true, sparse: true },
 
-    phone: { type: String, required: true, unique: true },
+    // Phone is still allowed (optional in UI, but kept for compatibility)
+    phone: { type: String, unique: true, sparse: true },
 
     password: { type: String, required: true },
 
-
     isAdmin: { type: Boolean, required: true, default: false },
 
-
     addresses: [addressSchema],
-
 
     wishlist: [
       {
@@ -39,18 +106,26 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
-
     profileImage: {
       type: String,
       default: '/images/default_user.png',
     },
+
+    // ✅ email verification
+    isVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String },
+    emailVerificationExpires: { type: Date },
+
+    // ✅ password reset
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   {
     timestamps: true,
   }
 );
 
-
+// Hash password before save
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     return next();
@@ -60,11 +135,10 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-
+// Compare password
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
-
 
 const User = mongoose.model('User', userSchema);
 export default User;
