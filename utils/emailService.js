@@ -1,13 +1,17 @@
 // backend/utils/emailService.js
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-dotenv.config();
 
-const {
-  EMAIL_USER,
-  EMAIL_PASS,
-  CLIENT_URL,
-} = process.env;
+// Only load .env in local/dev. On Render, env vars come from the platform.
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
+
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
+
+// 👇 This is the important part
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -19,16 +23,23 @@ const transporter = nodemailer.createTransport({
 
 const sendEmail = async ({ to, subject, html }) => {
   if (!to) return;
-  await transporter.sendMail({
-    from: `"Thamizhoviyaa" <${EMAIL_USER}>`,
-    to,
-    subject,
-    html,
-  });
+
+  try {
+    await transporter.sendMail({
+      from: `"Thamizhoviyaa" <${EMAIL_USER}>`,
+      to,
+      subject,
+      html,
+    });
+  } catch (err) {
+    console.error('Error sending email:', err);
+  }
 };
 
 // 🔗 verification email
 export const sendVerificationEmail = async (user, token) => {
+  console.log('CLIENT_URL used in verification email:', CLIENT_URL);
+
   const verifyUrl = `${CLIENT_URL}/verify-email?token=${token}`;
 
   const html = `
