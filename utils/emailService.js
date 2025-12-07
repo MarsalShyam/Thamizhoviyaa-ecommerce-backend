@@ -6,7 +6,7 @@ dotenv.config();
 const {
   EMAIL_USER,
   EMAIL_PASS,
-  CLIENT_URL = 'http://localhost:5173',
+  CLIENT_URL,
 } = process.env;
 
 const transporter = nodemailer.createTransport({
