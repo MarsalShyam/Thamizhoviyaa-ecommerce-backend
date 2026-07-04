@@ -8,6 +8,8 @@ import Order from '../models/Order.js';
 import CartItem from '../models/CartItem.js';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
+import Product from '../models/Product.js';
+import User from '../models/User.js';
 
 // ================== RAZORPAY INITIALIZATION ==================
 const razorpay = new Razorpay({
@@ -217,6 +219,88 @@ const updateOrderToDelivered = asyncHandler(async (req, res) => {
   res.json(updatedOrder);
 });
 
+// ================== ADMIN: GET DASHBOARD STATS ==================
+const getDashboardStats = asyncHandler(async (req, res) => {
+  const totalProducts = await Product.countDocuments({});
+  const totalCustomers = await User.countDocuments({ isAdmin: false });
+  const newOrders = await Order.countDocuments({ status: { $in: ['Ordered', 'Pending'] } });
+  
+  const allOrders = await Order.find({});
+  const totalSales = allOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+
+  // Sales Analytics (Today, This Week, This Month)
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfThisWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const startOfThisMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  let todaySales = 0;
+  let weekSales = 0;
+  let monthSales = 0;
+
+  allOrders.forEach(order => {
+    const orderDate = new Date(order.createdAt);
+    if (orderDate >= startOfToday) {
+      todaySales += order.totalPrice || 0;
+    }
+    if (orderDate >= startOfThisWeek) {
+      weekSales += order.totalPrice || 0;
+    }
+    if (orderDate >= startOfThisMonth) {
+      monthSales += order.totalPrice || 0;
+    }
+  });
+
+  // Revenue Analytics & Graph Data (Last 7 Days)
+  const last7Days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(now.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
+    last7Days.push({
+      date: d,
+      day: dayLabel,
+      revenue: 0,
+      orders: 0
+    });
+  }
+
+  allOrders.forEach(order => {
+    const orderDate = new Date(order.createdAt);
+    last7Days.forEach(day => {
+      const nextDay = new Date(day.date.getTime() + 24 * 60 * 60 * 1000);
+      if (orderDate >= day.date && orderDate < nextDay) {
+        day.revenue += order.totalPrice || 0;
+        day.orders += 1;
+      }
+    });
+  });
+
+  // Remove date objects before sending response
+  const graphData = last7Days.map(({ day, revenue, orders }) => ({
+    day,
+    revenue: +revenue.toFixed(2),
+    orders
+  }));
+
+  res.json({
+    totalProducts,
+    totalCustomers,
+    newOrders,
+    totalSales: +totalSales.toFixed(2),
+    salesAnalytics: {
+      today: +todaySales.toFixed(2),
+      thisWeek: +weekSales.toFixed(2),
+      thisMonth: +monthSales.toFixed(2),
+    },
+    revenueAnalytics: {
+      totalRevenue: +totalSales.toFixed(2),
+      graphData
+    }
+  });
+});
+
 // ================== EXPORT CONTROLLERS ==================
 export {
   createRazorpayOrder,
@@ -227,4 +311,5 @@ export {
   getAllOrders,
   updateOrderStatus,
   updateOrderToDelivered,
+  getDashboardStats,
 };

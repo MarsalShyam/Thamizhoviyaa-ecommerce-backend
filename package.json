@@ -13,6 +13,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@clerk/express": "^2.1.35",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
@@ -26,7 +27,8 @@
     "multer": "^2.0.2",
     "nodemailer": "^7.0.10",
     "pdfkit": "^0.17.2",
-    "razorpay": "^2.9.6"
+    "razorpay": "^2.9.6",
+    "svix": "^1.96.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

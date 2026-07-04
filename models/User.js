@@ -72,7 +72,6 @@
 
 // backend/models/User.js
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
 
 const addressSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -85,60 +84,31 @@ const addressSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema(
   {
+    clerkId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     name: { type: String, required: true },
-
-    // Email is now required for verification
     email: { type: String, unique: true, sparse: true },
-
-    // Phone is still allowed (optional in UI, but kept for compatibility)
     phone: { type: String, unique: true, sparse: true },
-
-    password: { type: String, required: true },
-
     isAdmin: { type: Boolean, required: true, default: false },
-
     addresses: [addressSchema],
-
     wishlist: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product',
       },
     ],
-
     profileImage: {
       type: String,
       default: '/images/default_user.png',
     },
-
-    // ✅ email verification
-    isVerified: { type: Boolean, default: false },
-    emailVerificationToken: { type: String },
-    emailVerificationExpires: { type: Date },
-
-    // ✅ password reset
-    resetPasswordToken: { type: String },
-    resetPasswordExpires: { type: Date },
   },
   {
     timestamps: true,
   }
 );
-
-// Hash password before save
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    return next();
-  }
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
-
-// Compare password
-userSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
-};
 
 const User = mongoose.model('User', userSchema);
 export default User;

@@ -37,10 +37,11 @@ import {
   verifyRazorpayPayment,
   addOrderItems,
   getMyOrders,
-  getOrderById,        // included (NEW + OLD)
+  getOrderById,
   getAllOrders,
-  updateOrderStatus,   // included (NEW + OLD)
+  updateOrderStatus,
   updateOrderToDelivered,
+  getDashboardStats,
 } from '../controllers/orderController.js';
 
 import { protect, admin } from '../middleware/authMiddleware.js';
@@ -48,6 +49,9 @@ import { protect, admin } from '../middleware/authMiddleware.js';
 // Razorpay
 router.post('/razorpay/create-order', protect, createRazorpayOrder);
 router.post('/razorpay/verify', protect, verifyRazorpayPayment);
+
+// Admin: get dashboard statistics
+router.get('/stats', protect, admin, getDashboardStats);
 
 // Create order and Admin get all
 router.route('/')

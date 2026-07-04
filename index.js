@@ -1,32 +1,33 @@
 // backend/server.js
-
+import 'dotenv/config'; // Load environment variables before all imports
 import express from 'express';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import cors from 'cors';
-import { notFound, errorHandler } from './middleware/errorMiddleware.js';// Optional: for professional error handling
+import { clerkMiddleware } from '@clerk/express';
+import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 // Import custom DB connection helper (optional if you already use connectDB)
 import connectDB from './config/db.js';
 
 // Import Routes
-import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import orderRoutes from './routes/orderRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js';
 import pdfRoutes from './routes/pdfRoutes.js';
-
-// Load environment variables
-dotenv.config();
+import blogRoutes from './routes/blogRoutes.js';
+import { handleClerkWebhook } from './controllers/clerkWebhookController.js';
 
 // --- Initialize App ---
 const app = express();
 
+// --- Clerk Webhook Route (MUST be before express.json() to verify raw signature) ---
+app.post('/api/webhooks/clerk', express.raw({ type: 'application/json' }), handleClerkWebhook);
+
 // --- Middleware ---
 app.use(cors());              // Enable CORS for frontend-backend communication
 app.use(express.json());      // Parse incoming JSON requests
-
+app.use(clerkMiddleware());   // Populate req.auth with Clerk session info
 
 // --- Database Connection ---
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -48,16 +49,12 @@ app.get('/', (req, res) => {
   res.send('🚀 API is running successfully!');
 });
 
-app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
-
 app.use('/api/upload', uploadRoutes);
-
-
 app.use('/api/users', userRoutes);
-
 app.use('/api/orders', orderRoutes);
 app.use("/api/pdf", pdfRoutes);
+app.use('/api/blogs', blogRoutes);
 
 
 
